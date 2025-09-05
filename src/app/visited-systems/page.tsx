@@ -152,7 +152,7 @@ const VisitedSystemsPage = () => {
                   disabled={loadingSystems}
                   variant="outline"
                   size="sm"
-                  className="text-white border-white/30 hover:bg-white/10"
+                  className="bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
                 >
                   <RefreshCw
                     className={`h-4 w-4 mr-2 ${
@@ -200,7 +200,7 @@ const VisitedSystemsPage = () => {
                         <Button
                           variant="ghost"
                           onClick={() => handleSort("system_name")}
-                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold"
+                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold cursor-pointer"
                         >
                           System
                           {sortField === "system_name" &&
@@ -215,7 +215,7 @@ const VisitedSystemsPage = () => {
                         <Button
                           variant="ghost"
                           onClick={() => handleSort("security_status")}
-                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold"
+                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold cursor-pointer"
                         >
                           Security
                           {sortField === "security_status" &&
@@ -230,7 +230,7 @@ const VisitedSystemsPage = () => {
                         <Button
                           variant="ghost"
                           onClick={() => handleSort("visit_count")}
-                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold"
+                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold cursor-pointer"
                         >
                           Visits
                           {sortField === "visit_count" &&
@@ -245,7 +245,7 @@ const VisitedSystemsPage = () => {
                         <Button
                           variant="ghost"
                           onClick={() => handleSort("last_visited")}
-                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold"
+                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold cursor-pointer"
                         >
                           Last Visited
                           {sortField === "last_visited" &&
@@ -260,7 +260,7 @@ const VisitedSystemsPage = () => {
                         <Button
                           variant="ghost"
                           onClick={() => handleSort("first_visited")}
-                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold"
+                          className="text-slate-300 hover:text-white p-0 h-auto font-semibold cursor-pointer"
                         >
                           First Visited
                           {sortField === "first_visited" &&

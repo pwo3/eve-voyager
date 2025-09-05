@@ -123,7 +123,7 @@ const Home = () => {
             <CardContent>
               <Button
                 onClick={() => (window.location.href = "/api/auth/eve/login")}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg cursor-pointer"
                 size="lg"
               >
                 <LogIn className="h-5 w-5 mr-2" />

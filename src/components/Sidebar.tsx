@@ -45,7 +45,7 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
           variant="ghost"
           size="sm"
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-white/10 text-white hover:bg-white/20"
+          className="bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-600 cursor-pointer"
         >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
@@ -88,10 +88,10 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                     isActive(item.href)
                       ? "bg-blue-600 text-white"
-                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                      : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -106,7 +106,7 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
             <Button
               onClick={onLogout}
               variant="ghost"
-              className="w-full justify-start text-slate-300 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start text-slate-300 hover:bg-slate-700/50 hover:text-white cursor-pointer"
             >
               <LogOut className="h-5 w-5 mr-3" />
               Logout

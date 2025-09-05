@@ -284,7 +284,7 @@ const SystemMapPage = () => {
                   onClick={() => setZoom(zoom * 1.2)}
                   variant="outline"
                   size="sm"
-                  className="text-white border-white/30 hover:bg-white/10"
+                  className="bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
                 >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
@@ -292,7 +292,7 @@ const SystemMapPage = () => {
                   onClick={() => setZoom(zoom / 1.2)}
                   variant="outline"
                   size="sm"
-                  className="text-white border-white/30 hover:bg-white/10"
+                  className="bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
                 >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
@@ -300,7 +300,7 @@ const SystemMapPage = () => {
                   onClick={resetView}
                   variant="outline"
                   size="sm"
-                  className="text-white border-white/30 hover:bg-white/10"
+                  className="bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -316,7 +316,7 @@ const SystemMapPage = () => {
                 disabled={loadingSystems}
                 variant="outline"
                 size="sm"
-                className="w-full text-white border-white/30 hover:bg-white/10"
+                className="w-full bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
               >
                 <RefreshCw
                   className={`h-4 w-4 mr-2 ${
