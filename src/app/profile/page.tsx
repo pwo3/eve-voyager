@@ -83,252 +83,238 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <Button
-            onClick={() => router.push("/")}
-            variant="ghost"
-            className="text-white hover:bg-white/20"
-          >
-            ← Back
-          </Button>
-          <Button
-            onClick={logout}
-            variant="ghost"
-            className="text-white hover:bg-white/20"
-          >
-            Logout
-          </Button>
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Character Profile
+          </h1>
+          <p className="text-slate-300">
+            Information about your EVE Online character
+          </p>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-white/10 border-white/20">
-            <CardHeader>
-              <div className="flex items-center gap-6">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage
-                    src={`https://images.evetech.net/characters/${user.character_id}/portrait`}
-                  />
-                  <AvatarFallback>
-                    <UserCircle className="h-12 w-12" />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-white text-3xl mb-2">
-                    {user.character_name}
-                  </CardTitle>
-                  <CardDescription className="text-slate-300 text-lg">
-                    EVE Online Character
-                  </CardDescription>
+        <Card className="bg-white/10 border-white/20">
+          <CardHeader>
+            <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage
+                  src={`https://images.evetech.net/characters/${user.character_id}/portrait`}
+                />
+                <AvatarFallback>
+                  <UserCircle className="h-12 w-12" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-white text-3xl mb-2">
+                  {user.character_name}
+                </CardTitle>
+                <CardDescription className="text-slate-300 text-lg">
+                  EVE Online Character
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Basic Information
+                </h3>
+
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-blue-400" />
+                  <span className="text-slate-300">Character ID:</span>
+                  <Badge
+                    variant="outline"
+                    className="text-white border-white/30"
+                  >
+                    {user.character_id}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-yellow-400" />
+                  <span className="text-slate-300">Token type:</span>
+                  <Badge variant="secondary">{user.token_type}</Badge>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-green-400" />
+                  <span className="text-slate-300">Expires in:</span>
+                  <span className="text-white">
+                    {Math.floor(user.expires_in / 3600)}h{" "}
+                    {Math.floor((user.expires_in % 3600) / 60)}m
+                  </span>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-white text-lg font-semibold mb-3">
-                    Basic Information
-                  </h3>
 
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Organization
+                </h3>
+
+                {user.corporation_id && (
                   <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-blue-400" />
-                    <span className="text-slate-300">Character ID:</span>
+                    <Building className="h-4 w-4 text-slate-400" />
+                    <span className="text-slate-300">Corporation ID:</span>
                     <Badge
                       variant="outline"
                       className="text-white border-white/30"
                     >
-                      {user.character_id}
+                      {user.corporation_id}
                     </Badge>
                   </div>
+                )}
 
+                {user.alliance_id && (
                   <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-yellow-400" />
-                    <span className="text-slate-300">Token type:</span>
-                    <Badge variant="secondary">{user.token_type}</Badge>
+                    <Users className="h-4 w-4 text-orange-400" />
+                    <span className="text-slate-300">Alliance ID:</span>
+                    <Badge
+                      variant="outline"
+                      className="text-white border-white/30"
+                    >
+                      {user.alliance_id}
+                    </Badge>
                   </div>
+                )}
 
+                {user.faction_id && (
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-green-400" />
-                    <span className="text-slate-300">Expires in:</span>
-                    <span className="text-white">
-                      {Math.floor(user.expires_in / 3600)}h{" "}
-                      {Math.floor((user.expires_in % 3600) / 60)}m
-                    </span>
+                    <Shield className="h-4 w-4 text-red-400" />
+                    <span className="text-slate-300">Faction ID:</span>
+                    <Badge
+                      variant="outline"
+                      className="text-white border-white/30"
+                    >
+                      {user.faction_id}
+                    </Badge>
                   </div>
-                </div>
+                )}
+              </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-white text-lg font-semibold mb-3">
-                    Organization
+              {/* Location Information */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-white text-lg font-semibold">
+                    Current Location
                   </h3>
-
-                  {user.corporation_id && (
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-300">Corporation ID:</span>
-                      <Badge
-                        variant="outline"
-                        className="text-white border-white/30"
-                      >
-                        {user.corporation_id}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {user.alliance_id && (
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-orange-400" />
-                      <span className="text-slate-300">Alliance ID:</span>
-                      <Badge
-                        variant="outline"
-                        className="text-white border-white/30"
-                      >
-                        {user.alliance_id}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {user.faction_id && (
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-red-400" />
-                      <span className="text-slate-300">Faction ID:</span>
-                      <Badge
-                        variant="outline"
-                        className="text-white border-white/30"
-                      >
-                        {user.faction_id}
-                      </Badge>
-                    </div>
-                  )}
                 </div>
 
-                {/* Location Information */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-white text-lg font-semibold">
-                      Current Location
-                    </h3>
+                {locationError && (
+                  <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">
+                    Error: {locationError}
                   </div>
+                )}
 
-                  {locationError && (
-                    <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">
-                      Error: {locationError}
+                {location && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                      <span className="text-slate-300 w-32">Solar System:</span>
+                      <Badge className="bg-blue-600">
+                        {location.solar_system?.name ||
+                          `ID: ${location.location.solar_system_id}`}
+                      </Badge>
                     </div>
-                  )}
 
-                  {location && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-blue-400 flex-shrink-0" />
-                        <span className="text-slate-300 w-32">
-                          Solar System:
-                        </span>
-                        <Badge className="bg-blue-600">
-                          {location.solar_system?.name ||
-                            `ID: ${location.location.solar_system_id}`}
-                        </Badge>
-                      </div>
-
-                      {location.solar_system && (
-                        <div className="space-y-1 text-sm">
+                    {location.solar_system && (
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4"></div>
+                          <span className="text-slate-300 w-32">
+                            Security Status:
+                          </span>
+                          <span className="text-white font-medium">
+                            {location.solar_system.security_status.toFixed(1)}
+                          </span>
+                        </div>
+                        {location.solar_system.security_class && (
                           <div className="flex items-center gap-2">
                             <div className="w-4"></div>
                             <span className="text-slate-300 w-32">
-                              Security Status:
+                              Security Class:
                             </span>
                             <span className="text-white font-medium">
-                              {location.solar_system.security_status.toFixed(1)}
+                              {location.solar_system.security_class}
                             </span>
                           </div>
-                          {location.solar_system.security_class && (
-                            <div className="flex items-center gap-2">
-                              <div className="w-4"></div>
-                              <span className="text-slate-300 w-32">
-                                Security Class:
-                              </span>
-                              <span className="text-white font-medium">
-                                {location.solar_system.security_class}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    )}
 
-                      {location.station && (
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4 text-green-400 flex-shrink-0" />
-                          <span className="text-slate-300 w-32">Station:</span>
-                          <Badge className="bg-green-600">
-                            {location.station.name}
-                          </Badge>
-                        </div>
-                      )}
+                    {location.station && (
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-green-400 flex-shrink-0" />
+                        <span className="text-slate-300 w-32">Station:</span>
+                        <Badge className="bg-green-600">
+                          {location.station.name}
+                        </Badge>
+                      </div>
+                    )}
 
-                      {location.structure && (
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4 text-purple-400 flex-shrink-0" />
-                          <span className="text-slate-300 w-32">
-                            Structure:
-                          </span>
-                          <Badge className="bg-purple-600">
-                            {location.structure.name}
-                          </Badge>
-                        </div>
-                      )}
+                    {location.structure && (
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-purple-400 flex-shrink-0" />
+                        <span className="text-slate-300 w-32">Structure:</span>
+                        <Badge className="bg-purple-600">
+                          {location.structure.name}
+                        </Badge>
+                      </div>
+                    )}
 
-                      {!location.station && !location.structure && (
-                        <div className="text-slate-400 text-sm ml-6">
-                          Currently in space
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    {!location.station && !location.structure && (
+                      <div className="text-slate-400 text-sm ml-6">
+                        Currently in space
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  {!location && !locationLoading && !locationError && (
-                    <div className="text-slate-400 text-sm">
-                      Loading location...
-                    </div>
-                  )}
+                {!location && !locationLoading && !locationError && (
+                  <div className="text-slate-400 text-sm">
+                    Loading location...
+                  </div>
+                )}
 
-                  {locationLoading && (
-                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Loading location...
-                    </div>
-                  )}
+                {locationLoading && (
+                  <div className="flex items-center gap-2 text-slate-400 text-sm">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Loading location...
+                  </div>
+                )}
+              </div>
+
+              {/* Scopes and Permissions */}
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Permissions
+                </h3>
+
+                <div className="space-y-2">
+                  <span className="text-slate-300 text-sm">
+                    Granted scopes:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {user.scopes.map((scope, index) => (
+                      <Badge key={index} className="bg-green-600 text-xs">
+                        {scope}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Scopes and Permissions */}
-                <div className="space-y-4">
-                  <h3 className="text-white text-lg font-semibold mb-3">
-                    Permissions
-                  </h3>
-
-                  <div className="space-y-2">
-                    <span className="text-slate-300 text-sm">
-                      Granted scopes:
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {user.scopes.map((scope, index) => (
-                        <Badge key={index} className="bg-green-600 text-xs">
-                          {scope}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <span className="text-slate-300 text-sm">Owner hash:</span>
-                    <div className="text-white text-xs font-mono bg-black/20 p-2 rounded mt-1 break-all">
-                      {user.character_owner_hash}
-                    </div>
+                <div className="pt-2">
+                  <span className="text-slate-300 text-sm">Owner hash:</span>
+                  <div className="text-white text-xs font-mono bg-black/20 p-2 rounded mt-1 break-all">
+                    {user.character_owner_hash}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

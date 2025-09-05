@@ -107,3 +107,28 @@ export interface EVELocationResponse {
   station?: EVEStation;
   structure?: EVEStructure;
 }
+
+// Types for visited systems tracking
+export interface VisitedSystem {
+  system_id: number;
+  system_name: string;
+  security_status: number;
+  security_class?: string;
+  first_visited: string;
+  last_visited: string;
+  visit_count: number;
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  constellation_id: number;
+  region_id?: number;
+}
+
+export interface VisitedSystemsResponse {
+  systems: VisitedSystem[];
+  total_count: number;
+  last_updated: string;
+  error?: string;
+}

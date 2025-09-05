@@ -1,40 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { LogIn, LogOut, UserCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LogIn, MapPin, Network, User, Shield, Zap } from "lucide-react";
 
 const Home = () => {
-  const {
-    user,
-    loading: authLoading,
-    login,
-    logout,
-    refreshSession,
-  } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const loginStatus = urlParams.get("login");
-    const errorParam = urlParams.get("error");
-
-    if (loginStatus === "success") {
-      refreshSession();
-
-      window.history.replaceState({}, document.title, window.location.pathname);
+    if (!loading && user) {
+      // User is logged in, redirect to profile
+      router.push("/profile");
     }
+  }, [user, loading, router]);
 
-    if (errorParam) {
-      setError(`Erreur de connexion: ${errorParam}`);
-
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [refreshSession]);
-
-  if (authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -45,108 +35,153 @@ const Home = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <div className="flex justify-between items-center mb-8">
-            <div></div>
-            <h1 className="text-4xl font-bold text-white">EVE Voyager</h1>
-            <div className="flex items-center gap-2">
-              {user ? (
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => (window.location.href = "/profile")}
-                    variant="ghost"
-                    className="text-white hover:bg-white/20 p-1"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={`https://images.evetech.net/characters/${user.character_id}/portrait`}
-                      />
-                      <AvatarFallback>
-                        <UserCircle className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                  <span className="text-white text-sm">
-                    {user.character_name}
-                  </span>
-                  <Button
-                    onClick={logout}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={login}
-                  className="bg-slate-600 hover:bg-slate-700 text-white"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Connexion EVE
-                </Button>
-              )}
-            </div>
-          </div>
+  if (user) {
+    return null; // Will redirect to profile
+  }
 
-          <p className="text-xl text-slate-300 mb-8">
-            Connect with your EVE Online account to explore the universe
+  return (
+    <div className="p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-white mb-6">
+            Welcome to EVE Voyager
+          </h1>
+          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+            Explore the EVE Online universe with advanced tracking and
+            visualization tools. Monitor your travels, analyze visited systems,
+            and navigate the stars like never before.
           </p>
         </div>
 
-        {error && (
-          <div className="max-w-md mx-auto mb-6">
-            <div className="bg-red-500/10 border border-red-500 rounded-lg p-4">
-              <p className="text-red-400 text-center">{error}</p>
-            </div>
-          </div>
-        )}
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <User className="h-8 w-8 text-blue-400" />
+                <CardTitle className="text-white text-xl">
+                  Character Profile
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-slate-300">
+                View detailed information about your EVE Online character,
+                including corporation, alliance, and current location data.
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-        {/* Welcome Message */}
-        {!user && (
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-white/10 border border-white/20 rounded-lg p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Welcome to EVE Voyager
-              </h2>
-              <p className="text-slate-300 mb-6">
-                Connect with your EVE Online account to access your profile and
-                explore the application features.
-              </p>
+          <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <MapPin className="h-8 w-8 text-green-400" />
+                <CardTitle className="text-white text-xl">
+                  Visited Systems
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-slate-300">
+                Track and analyze all the solar systems you've visited during
+                your EVE Online adventures.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Network className="h-8 w-8 text-purple-400" />
+                <CardTitle className="text-white text-xl">
+                  Interactive Map
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-slate-300">
+                Visualize your travels on an interactive 3D map, similar to
+                Tripwire and Pathfinder tools.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center">
+          <Card className="bg-white/10 border-white/20 max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-white text-2xl mb-2">
+                Ready to Explore?
+              </CardTitle>
+              <CardDescription className="text-slate-300 text-lg">
+                Connect with your EVE Online account to start tracking your
+                journey through the stars.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Button
-                onClick={login}
-                className="bg-slate-600 hover:bg-slate-700 text-white px-8 py-3 text-lg"
+                onClick={() => (window.location.href = "/api/auth/eve/login")}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                size="lg"
               >
                 <LogIn className="h-5 w-5 mr-2" />
                 Connect with EVE Online
               </Button>
-            </div>
-          </div>
-        )}
+            </CardContent>
+          </Card>
+        </div>
 
-        {user && (
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-white/10 border border-white/20 rounded-lg p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Welcome, {user.character_name}!
-              </h2>
-              <p className="text-slate-300 mb-6">
-                You are successfully connected. Access your profile to see your
-                detailed information.
-              </p>
-              <Button
-                onClick={() => (window.location.href = "/profile")}
-                className="bg-slate-600 hover:bg-slate-700 text-white px-8 py-3 text-lg"
-              >
-                View my profile
-              </Button>
-            </div>
+        {/* Features List */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-6">Features</h3>
+            <ul className="space-y-4">
+              <li className="flex items-center gap-3 text-slate-300">
+                <Shield className="h-5 w-5 text-blue-400" />
+                Real-time character information
+              </li>
+              <li className="flex items-center gap-3 text-slate-300">
+                <MapPin className="h-5 w-5 text-green-400" />
+                System visit tracking and history
+              </li>
+              <li className="flex items-center gap-3 text-slate-300">
+                <Network className="h-5 w-5 text-purple-400" />
+                Interactive 3D system mapping
+              </li>
+              <li className="flex items-center gap-3 text-slate-300">
+                <Zap className="h-5 w-5 text-yellow-400" />
+                Security status analysis
+              </li>
+            </ul>
           </div>
-        )}
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-6">
+              Getting Started
+            </h3>
+            <ol className="space-y-4 text-slate-300">
+              <li className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  1
+                </span>
+                Click "Connect with EVE Online" to authenticate
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  2
+                </span>
+                Grant the necessary permissions to the application
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  3
+                </span>
+                Start exploring your character data and travel history
+              </li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
   );
