@@ -45,3 +45,65 @@ export interface AuthSession {
   accessToken: string;
   expires: Date;
 }
+
+// Types for EVE Online location data
+export interface EVELocation {
+  solar_system_id: number;
+  station_id?: number;
+  structure_id?: number;
+}
+
+export interface EVESolarSystem {
+  system_id: number;
+  name: string;
+  security_class?: string;
+  security_status: number;
+  constellation_id: number;
+  star_id?: number;
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+}
+
+export interface EVEStation {
+  station_id: number;
+  name: string;
+  system_id: number;
+  type_id: number;
+  race_id?: number;
+  owner?: number;
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  reprocessing_efficiency?: number;
+  reprocessing_stations_take?: number;
+  max_dockable_ship_volume?: number;
+  office_rental_cost?: number;
+  services: string[];
+}
+
+export interface EVEStructure {
+  structure_id: number;
+  name: string;
+  system_id: number;
+  type_id: number;
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  services: string[];
+  state: string;
+  unanchors_at?: string;
+}
+
+export interface EVELocationResponse {
+  location: EVELocation;
+  solar_system?: EVESolarSystem;
+  station?: EVEStation;
+  structure?: EVEStructure;
+}

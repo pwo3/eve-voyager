@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -19,18 +19,56 @@ import {
   Calendar,
   Building,
   Users,
+  MapPin,
+  RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { EVELocationResponse } from "@/types/auth";
 
 const ProfilePage = () => {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const [location, setLocation] = useState<EVELocationResponse | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/");
     }
   }, [user, loading, router]);
+
+  // Fetch location automatically when user is loaded
+  useEffect(() => {
+    if (user && !location && !locationLoading) {
+      fetchLocation();
+    }
+  }, [user, location, locationLoading]);
+
+  const fetchLocation = async () => {
+    if (!user) return;
+
+    setLocationLoading(true);
+    setLocationError(null);
+
+    try {
+      const response = await fetch("/api/location");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch location");
+      }
+
+      setLocation(data);
+    } catch (error) {
+      console.error("Error fetching location:", error);
+      setLocationError(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    } finally {
+      setLocationLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -161,6 +199,102 @@ const ProfilePage = () => {
                       >
                         {user.faction_id}
                       </Badge>
+                    </div>
+                  )}
+                </div>
+
+                {/* Location Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-white text-lg font-semibold">
+                      Current Location
+                    </h3>
+                  </div>
+
+                  {locationError && (
+                    <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">
+                      Error: {locationError}
+                    </div>
+                  )}
+
+                  {location && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                        <span className="text-slate-300 w-32">
+                          Solar System:
+                        </span>
+                        <Badge className="bg-blue-600">
+                          {location.solar_system?.name ||
+                            `ID: ${location.location.solar_system_id}`}
+                        </Badge>
+                      </div>
+
+                      {location.solar_system && (
+                        <div className="space-y-1 text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-4"></div>
+                            <span className="text-slate-300 w-32">
+                              Security Status:
+                            </span>
+                            <span className="text-white font-medium">
+                              {location.solar_system.security_status.toFixed(1)}
+                            </span>
+                          </div>
+                          {location.solar_system.security_class && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4"></div>
+                              <span className="text-slate-300 w-32">
+                                Security Class:
+                              </span>
+                              <span className="text-white font-medium">
+                                {location.solar_system.security_class}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {location.station && (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-green-400 flex-shrink-0" />
+                          <span className="text-slate-300 w-32">Station:</span>
+                          <Badge className="bg-green-600">
+                            {location.station.name}
+                          </Badge>
+                        </div>
+                      )}
+
+                      {location.structure && (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-purple-400 flex-shrink-0" />
+                          <span className="text-slate-300 w-32">
+                            Structure:
+                          </span>
+                          <Badge className="bg-purple-600">
+                            {location.structure.name}
+                          </Badge>
+                        </div>
+                      )}
+
+                      {!location.station && !location.structure && (
+                        <div className="text-slate-400 text-sm ml-6">
+                          Currently in space
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!location && !locationLoading && !locationError && (
+                    <div className="text-slate-400 text-sm">
+                      Loading location...
+                    </div>
+                  )}
+
+                  {locationLoading && (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Loading location...
                     </div>
                   )}
                 </div>
