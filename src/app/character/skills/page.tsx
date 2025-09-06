@@ -163,6 +163,10 @@ export default function SkillsPage() {
                     <h2 className="text-lg font-semibold text-gray-100">
                       Training Status
                     </h2>
+                    <span className="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded">
+                      {skillQueue.length} skill
+                      {skillQueue.length !== 1 ? "s" : ""} in queue
+                    </span>
                     {currentSkill && (
                       <span className="text-sm text-blue-400 bg-blue-500/20 px-2 py-1 rounded">
                         Currently: {currentSkill.skill_name} (Level{" "}
