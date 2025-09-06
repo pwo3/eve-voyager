@@ -245,7 +245,7 @@ export default function SkillsPage() {
                                 : "text-gray-100"
                             }`}
                           >
-                            {item.skill_name} ({item.finished_level}x)
+                            {item.skill_name}
                           </h3>
                           <span className="text-gray-400 text-sm">
                             Level {item.finished_level}
