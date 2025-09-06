@@ -240,8 +240,26 @@ const CharacterPage = () => {
                 {profileData && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
-                        <Building className="h-6 w-6 text-blue-400" />
+                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img
+                          src={`https://images.evetech.net/corporations/${profileData.corporation.corporation_id}/logo`}
+                          alt={`${profileData.corporation.name} logo`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget
+                              .nextElementSibling as HTMLElement;
+                            if (fallback) {
+                              fallback.style.display = "flex";
+                            }
+                          }}
+                        />
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ display: "none" }}
+                        >
+                          <Building className="h-6 w-6 text-blue-400" />
+                        </div>
                       </div>
                       <div>
                         <div className="text-white font-medium">
@@ -274,8 +292,26 @@ const CharacterPage = () => {
                 {profileData?.alliance ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
-                        <Users className="h-6 w-6 text-orange-400" />
+                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img
+                          src={`https://images.evetech.net/alliances/${profileData.alliance.alliance_id}/logo`}
+                          alt={`${profileData.alliance.name} logo`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget
+                              .nextElementSibling as HTMLElement;
+                            if (fallback) {
+                              fallback.style.display = "flex";
+                            }
+                          }}
+                        />
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ display: "none" }}
+                        >
+                          <Users className="h-6 w-6 text-orange-400" />
+                        </div>
                       </div>
                       <div>
                         <div className="text-white font-medium">
@@ -395,8 +431,26 @@ const CharacterPage = () => {
                 {profileData?.ship ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
-                        <Shield className="h-6 w-6 text-yellow-400" />
+                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img
+                          src={`https://images.evetech.net/types/${profileData.ship.ship_type_id}/icon`}
+                          alt={`${profileData.ship.ship_type_name} icon`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget
+                              .nextElementSibling as HTMLElement;
+                            if (fallback) {
+                              fallback.style.display = "flex";
+                            }
+                          }}
+                        />
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ display: "none" }}
+                        >
+                          <Shield className="h-6 w-6 text-yellow-400" />
+                        </div>
                       </div>
                       <div>
                         <div className="text-white font-medium">
