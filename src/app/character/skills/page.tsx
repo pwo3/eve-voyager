@@ -10,8 +10,6 @@ export default function SkillsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log(skillQueue);
-
   const fetchSkillQueue = async () => {
     try {
       setLoading(true);
@@ -61,78 +59,59 @@ export default function SkillsPage() {
     const lastSkill = skillQueue[skillQueue.length - 1];
     const finishTime = new Date(lastSkill.finish_date).getTime();
 
-    // Check if dates are valid
-    const isFinishValid = !isNaN(finishTime);
-    const isNowValid = !isNaN(now);
-
-    if (!isFinishValid) {
-      console.error(
-        "Invalid finish date for total time:",
-        lastSkill.finish_date
-      );
-      return 0;
-    }
-
-    if (!isNowValid) {
-      console.error("Invalid current time for total calculation");
-      return 0;
-    }
+    if (isNaN(finishTime) || isNaN(now)) return 0;
 
     const remainingMs = finishTime - now;
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
-    // Debug logging
-    console.log("Total training time calculation:", {
-      now: new Date(now).toISOString(),
-      lastSkillFinish: lastSkill.finish_date,
-      finishTime: new Date(finishTime).toISOString(),
-      nowTimestamp: now,
-      finishTimestamp: finishTime,
-      remainingMs: remainingMs,
-      remainingSeconds: remainingSeconds,
-      formatted: formatTime(remainingSeconds),
-      isFinishInFuture: finishTime > now,
+    return Math.max(0, remainingSeconds);
+  };
+
+  const getOverallProgress = () => {
+    if (skillQueue.length === 0) return { currentSkill: null };
+
+    const now = new Date().getTime();
+
+    // Find currently training skill
+    const currentSkill = skillQueue.find((skill) => {
+      const skillStart = new Date(skill.start_date).getTime();
+      const skillFinish = new Date(skill.finish_date).getTime();
+      return now >= skillStart && now < skillFinish;
     });
 
-    return Math.max(0, remainingSeconds);
+    return { currentSkill };
   };
 
   const getTimeRemaining = (item: EVESkillQueueItem) => {
     const start = new Date(item.start_date).getTime();
     const finish = new Date(item.finish_date).getTime();
 
-    // Check if dates are valid
-    const isFinishValid = !isNaN(finish);
-    const isStartValid = !isNaN(start);
-
-    if (!isFinishValid) {
-      console.error("Invalid finish date:", item.finish_date);
-      return 0;
-    }
-
-    if (!isStartValid) {
-      console.error("Invalid start date:", item.start_date);
-      return 0;
-    }
+    if (isNaN(finish) || isNaN(start)) return 0;
 
     const remainingMs = finish - start;
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
-    // Debug logging
-    console.log("Individual skill time calculation:", {
-      startDate: item.start_date,
-      finishDate: item.finish_date,
-      start: new Date(start).toISOString(),
-      finish: new Date(finish).toISOString(),
-      startTimestamp: start,
-      finishTimestamp: finish,
-      remainingMs: remainingMs,
-      remainingSeconds: remainingSeconds,
-      formatted: formatTime(remainingSeconds),
-      isFinishAfterStart: finish > start,
-    });
+    return Math.max(0, remainingSeconds);
+  };
+
+  const getCurrentSkillTimeRemaining = (item: EVESkillQueueItem) => {
+    const now = new Date().getTime();
+    const finish = new Date(item.finish_date).getTime();
+
+    if (isNaN(finish) || isNaN(now)) return 0;
+
+    const remainingMs = finish - now;
+    const remainingSeconds = Math.floor(remainingMs / 1000);
 
     return Math.max(0, remainingSeconds);
+  };
+
+  const isCurrentlyTraining = (item: EVESkillQueueItem) => {
+    const now = new Date().getTime();
+    const start = new Date(item.start_date).getTime();
+    const finish = new Date(item.finish_date).getTime();
+
+    return now >= start && now < finish;
   };
 
   const getLevelProgress = (item: EVESkillQueueItem) => {
@@ -140,11 +119,13 @@ export default function SkillsPage() {
     const start = new Date(item.start_date).getTime();
     const finish = new Date(item.finish_date).getTime();
 
+    if (isNaN(start) || isNaN(finish) || isNaN(now)) return 0;
     if (now <= start) return 0;
     if (now >= finish) return 1;
 
     const totalTime = finish - start;
     const elapsedTime = now - start;
+
     return Math.min(1, Math.max(0, elapsedTime / totalTime));
   };
 
@@ -168,47 +149,44 @@ export default function SkillsPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header - EVE Style */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-100 mb-2">
-            Training Queue
-          </h1>
-          <div className="flex items-center justify-between text-sm text-gray-400">
-            <span>
-              Completes on{" "}
-              {skillQueue.length > 0
-                ? new Date(
-                    skillQueue[skillQueue.length - 1]?.finish_date
-                  ).toLocaleDateString()
-                : "N/A"}
-            </span>
-            <span>
-              at{" "}
-              {skillQueue.length > 0
-                ? new Date(
-                    skillQueue[skillQueue.length - 1]?.finish_date
-                  ).toLocaleTimeString()
-                : "N/A"}
-            </span>
-            {skillQueue.length > 0 && (
-              <span className="text-blue-400 font-mono text-lg">
-                {formatTime(getTotalTrainingTime())}
-              </span>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold text-gray-100">Training Queue</h1>
         </div>
 
-        {/* Timeline Bar - EVE Style */}
-        {skillQueue.length > 0 && (
-          <div className="mb-6">
-            <div className="bg-gray-800 rounded h-2 relative overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded"></div>
-              <div className="absolute top-0 left-0 right-0 h-full flex justify-between items-center px-2 text-xs text-gray-400">
-                <span>0</span>
-                <span>12</span>
-                <span>24</span>
+        {/* Overall Progress Info - EVE Style */}
+        {skillQueue.length > 0 &&
+          (() => {
+            const { currentSkill } = getOverallProgress();
+            return (
+              <div className="mb-6 bg-gray-800 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-lg font-semibold text-gray-100">
+                      Training Status
+                    </h2>
+                    {currentSkill && (
+                      <span className="text-sm text-blue-400 bg-blue-500/20 px-2 py-1 rounded">
+                        Currently: {currentSkill.skill_name} (Level{" "}
+                        {currentSkill.finished_level})
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-mono text-blue-400">
+                      {formatTime(getTotalTrainingTime())}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Completes:{" "}
+                      {skillQueue.length > 0
+                        ? new Date(
+                            skillQueue[skillQueue.length - 1].finish_date
+                          ).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            );
+          })()}
 
         {/* Skill Queue List - EVE Style */}
         <div className="bg-gray-800 rounded-lg">
@@ -232,68 +210,116 @@ export default function SkillsPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-700">
-              {skillQueue.map((item) => (
-                <div
-                  key={`${item.skill_id}-${item.queue_position}`}
-                  className="p-4 hover:bg-gray-750 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Skill Icon - Small square like in EVE */}
-                    <div className="w-6 h-6 bg-gray-500 rounded-sm flex items-center justify-center">
-                      <BookOpen className="h-4 w-4 text-gray-300" />
-                    </div>
-
-                    {/* Skill Name and Level */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-gray-100 font-medium truncate">
-                          {item.skill_name} ({item.finished_level}x)
-                        </h3>
-                        <span className="text-gray-400 text-sm">
-                          Level {item.finished_level}
-                        </span>
+              {skillQueue.map((item) => {
+                const isCurrentlyTrainingSkill = isCurrentlyTraining(item);
+                return (
+                  <div
+                    key={`${item.skill_id}-${item.queue_position}`}
+                    className={`p-4 hover:bg-gray-750 transition-colors ${
+                      isCurrentlyTrainingSkill ? "bg-blue-900/20" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Skill Icon - Small square like in EVE */}
+                      <div
+                        className={`w-6 h-6 rounded-sm flex items-center justify-center ${
+                          isCurrentlyTrainingSkill
+                            ? "bg-blue-500"
+                            : "bg-gray-500"
+                        }`}
+                      >
+                        <BookOpen className="h-4 w-4 text-gray-300" />
                       </div>
 
-                      {/* Time Remaining */}
-                      <div className="text-sm text-gray-400 font-mono mb-2">
-                        {formatTime(getTimeRemaining(item))}
-                      </div>
+                      {/* Skill Name and Level */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3
+                            className={`font-medium truncate ${
+                              isCurrentlyTrainingSkill
+                                ? "text-blue-300"
+                                : "text-gray-100"
+                            }`}
+                          >
+                            {item.skill_name} ({item.finished_level}x)
+                          </h3>
+                          <span className="text-gray-400 text-sm">
+                            Level {item.finished_level}
+                          </span>
+                          {isCurrentlyTrainingSkill && (
+                            <span className="text-blue-400 text-xs font-semibold px-2 py-1 bg-blue-500/20 rounded">
+                              TRAINING
+                            </span>
+                          )}
+                        </div>
 
-                      {/* Level Progress Squares - EVE Style */}
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((level) => {
-                          const isCompleted = level < item.finished_level;
-                          const isCurrent = level === item.finished_level;
-                          const progress = isCurrent
-                            ? getLevelProgress(item)
-                            : 0;
+                        {/* Time Remaining */}
+                        <div
+                          className={`text-sm font-mono mb-2 ${
+                            isCurrentlyTrainingSkill
+                              ? "text-blue-300"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {isCurrentlyTrainingSkill
+                            ? formatTime(getCurrentSkillTimeRemaining(item))
+                            : formatTime(getTimeRemaining(item))}
+                        </div>
 
-                          return (
-                            <div
-                              key={level}
-                              className={`w-3 h-3 rounded-sm relative overflow-hidden ${
-                                isCompleted ? "bg-blue-500" : "bg-gray-600"
-                              }`}
-                            >
-                              {isCurrent && progress > 0 && (
-                                <div
-                                  className="absolute inset-0 bg-blue-500"
-                                  style={{ width: `${progress * 100}%` }}
-                                />
-                              )}
+                        {/* Progress Bar - Only for currently training skill */}
+                        {isCurrentlyTrainingSkill && (
+                          <div className="mb-3">
+                            <div className="w-full bg-gray-700 rounded-full h-2">
+                              <div
+                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                style={{
+                                  width: `${getLevelProgress(item) * 100}%`,
+                                }}
+                              />
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              {Math.round(getLevelProgress(item) * 100)}%
+                              complete
+                            </div>
+                          </div>
+                        )}
 
-                    {/* Info Icon */}
-                    <button className="p-1 hover:bg-gray-600 rounded-full">
-                      <Info className="h-4 w-4 text-gray-400" />
-                    </button>
+                        {/* Level Progress Squares - EVE Style */}
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((level) => {
+                            const isCompleted = level < item.finished_level;
+                            const isCurrent = level === item.finished_level;
+                            const progress = isCurrent
+                              ? getLevelProgress(item)
+                              : 0;
+
+                            return (
+                              <div
+                                key={level}
+                                className={`w-3 h-3 rounded-sm relative overflow-hidden ${
+                                  isCompleted ? "bg-blue-500" : "bg-gray-600"
+                                }`}
+                              >
+                                {isCurrent && progress > 0 && (
+                                  <div
+                                    className="absolute inset-0 bg-blue-500"
+                                    style={{ width: `${progress * 100}%` }}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Info Icon */}
+                      <button className="p-1 hover:bg-gray-600 rounded-full">
+                        <Info className="h-4 w-4 text-gray-400" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
