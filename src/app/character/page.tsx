@@ -114,6 +114,31 @@ const CharacterPage = () => {
     return null;
   }
 
+  // Show loader while data is being fetched
+  const isDataLoading = profileLoading || locationLoading;
+  const hasData = profileData && location;
+  const hasErrors = profileError || locationError;
+
+  if (isDataLoading && !hasData && !hasErrors) {
+    return (
+      <div className="min-h-screen bg-slate-900 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              <div className="text-slate-300 text-lg">
+                Loading character data...
+              </div>
+              <div className="text-slate-400 text-sm">
+                Fetching profile and location information
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <div className="max-w-4xl mx-auto">
@@ -124,6 +149,12 @@ const CharacterPage = () => {
           <p className="text-slate-300">
             Information about your EVE Online character
           </p>
+          {isDataLoading && (
+            <div className="mt-2 flex items-center gap-2 text-slate-400 text-sm">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              <span>Updating data...</span>
+            </div>
+          )}
         </div>
 
         <Card className="bg-white/10 border-white/20">

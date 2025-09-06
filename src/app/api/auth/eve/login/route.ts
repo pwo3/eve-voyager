@@ -5,7 +5,7 @@ const CLIENT_ID = process.env.EVE_CLIENT_ID;
 const REDIRECT_URI =
   process.env.EVE_REDIRECT_URI || "http://localhost:3000/api/auth/eve/callback";
 const SCOPES =
-  "publicData esi-location.read_location.v1 esi-location.read_ship_type.v1 esi-location.read_online.v1";
+  "publicData esi-location.read_location.v1 esi-location.read_ship_type.v1 esi-location.read_online.v1 esi-skills.read_skills.v1 esi-skills.read_skillqueue.v1";
 
 export const GET = async () => {
   if (!CLIENT_ID) {

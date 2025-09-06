@@ -1,105 +1,151 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { RefreshCw, Search, BookOpen, Clock, Star } from "lucide-react";
-import { EVESkill, EVESkillsResponse } from "@/types/auth";
+import { RefreshCw, BookOpen, Pause, Info } from "lucide-react";
+import { EVESkillQueueItem, EVESkillQueueResponse } from "@/types/auth";
 
 export default function SkillsPage() {
-  const [skills, setSkills] = useState<EVESkill[]>([]);
+  const [skillQueue, setSkillQueue] = useState<EVESkillQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<keyof EVESkill>("skill_name");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [totalSP, setTotalSP] = useState(0);
-  const [unallocatedSP, setUnallocatedSP] = useState(0);
 
-  const fetchSkills = async () => {
+  console.log(skillQueue);
+
+  const fetchSkillQueue = async () => {
     try {
       setLoading(true);
       setError(null);
 
       const response = await fetch("/api/character/skills");
-      const data: EVESkillsResponse = await response.json();
+      const data: EVESkillQueueResponse = await response.json();
 
       if (data.error) {
         setError(data.error);
         return;
       }
 
-      setSkills(data.skills || []);
-      setTotalSP(data.total_sp || 0);
-      setUnallocatedSP(data.unallocated_sp || 0);
+      setSkillQueue(data.queue || []);
     } catch (error) {
-      console.error("Error fetching skills:", error);
-      setError("Failed to fetch skills data");
+      console.error("Error fetching skill queue:", error);
+      setError("Failed to fetch skill queue data");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSkills();
+    fetchSkillQueue();
   }, []);
 
-  const filteredSkills = skills.filter((skill) =>
-    skill.skill_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const formatTime = (seconds: number) => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
 
-  const sortedSkills = [...filteredSkills].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
+    const parts = [];
+    if (days > 0) parts.push(`${days}D`);
+    if (hours > 0) parts.push(`${hours}H`);
+    if (minutes > 0) parts.push(`${minutes}M`);
+    if (remainingSeconds > 0 || parts.length === 0)
+      parts.push(`${remainingSeconds}S`);
 
-    if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
-
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-    }
-
-    return 0;
-  });
-
-  const handleSort = (field: keyof EVESkill) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
+    return parts.join(" ");
   };
 
-  const getSkillLevelColor = (level: number) => {
-    if (level === 5) return "bg-purple-600";
-    if (level === 4) return "bg-blue-600";
-    if (level === 3) return "bg-green-600";
-    if (level === 2) return "bg-yellow-600";
-    return "bg-gray-600";
+  const getTotalTrainingTime = () => {
+    if (skillQueue.length === 0) return 0;
+
+    const now = new Date().getTime();
+    const lastSkill = skillQueue[skillQueue.length - 1];
+    const finishTime = new Date(lastSkill.finish_date).getTime();
+
+    // Check if dates are valid
+    const isFinishValid = !isNaN(finishTime);
+    const isNowValid = !isNaN(now);
+
+    if (!isFinishValid) {
+      console.error(
+        "Invalid finish date for total time:",
+        lastSkill.finish_date
+      );
+      return 0;
+    }
+
+    if (!isNowValid) {
+      console.error("Invalid current time for total calculation");
+      return 0;
+    }
+
+    const remainingMs = finishTime - now;
+    const remainingSeconds = Math.floor(remainingMs / 1000);
+
+    // Debug logging
+    console.log("Total training time calculation:", {
+      now: new Date(now).toISOString(),
+      lastSkillFinish: lastSkill.finish_date,
+      finishTime: new Date(finishTime).toISOString(),
+      nowTimestamp: now,
+      finishTimestamp: finishTime,
+      remainingMs: remainingMs,
+      remainingSeconds: remainingSeconds,
+      formatted: formatTime(remainingSeconds),
+      isFinishInFuture: finishTime > now,
+    });
+
+    return Math.max(0, remainingSeconds);
   };
 
-  const formatSP = (sp: number) => {
-    if (sp >= 1000000) {
-      return `${(sp / 1000000).toFixed(1)}M`;
+  const getTimeRemaining = (item: EVESkillQueueItem) => {
+    const start = new Date(item.start_date).getTime();
+    const finish = new Date(item.finish_date).getTime();
+
+    // Check if dates are valid
+    const isFinishValid = !isNaN(finish);
+    const isStartValid = !isNaN(start);
+
+    if (!isFinishValid) {
+      console.error("Invalid finish date:", item.finish_date);
+      return 0;
     }
-    if (sp >= 1000) {
-      return `${(sp / 1000).toFixed(1)}K`;
+
+    if (!isStartValid) {
+      console.error("Invalid start date:", item.start_date);
+      return 0;
     }
-    return sp.toLocaleString();
+
+    const remainingMs = finish - start;
+    const remainingSeconds = Math.floor(remainingMs / 1000);
+
+    // Debug logging
+    console.log("Individual skill time calculation:", {
+      startDate: item.start_date,
+      finishDate: item.finish_date,
+      start: new Date(start).toISOString(),
+      finish: new Date(finish).toISOString(),
+      startTimestamp: start,
+      finishTimestamp: finish,
+      remainingMs: remainingMs,
+      remainingSeconds: remainingSeconds,
+      formatted: formatTime(remainingSeconds),
+      isFinishAfterStart: finish > start,
+    });
+
+    return Math.max(0, remainingSeconds);
+  };
+
+  const getLevelProgress = (item: EVESkillQueueItem) => {
+    const now = new Date().getTime();
+    const start = new Date(item.start_date).getTime();
+    const finish = new Date(item.finish_date).getTime();
+
+    if (now <= start) return 0;
+    if (now >= finish) return 1;
+
+    const totalTime = finish - start;
+    const elapsedTime = now - start;
+    return Math.min(1, Math.max(0, elapsedTime / totalTime));
   };
 
   if (loading) {
@@ -118,184 +164,139 @@ export default function SkillsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Character Skills
+    <div className="min-h-screen bg-gray-900 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header - EVE Style */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-100 mb-2">
+            Training Queue
           </h1>
-          <p className="text-slate-400">
-            View and manage your character's skill training progress
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-sm font-medium flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-400" />
-                Total Skill Points
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {formatSP(totalSP)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-sm font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-400" />
-                Unallocated SP
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {formatSP(unallocatedSP)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-sm font-medium flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-green-400" />
-                Skills Trained
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {skills.length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search skills..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-slate-800 border-slate-600 text-white placeholder-slate-400"
-            />
-          </div>
-          <Button
-            onClick={fetchSkills}
-            className="bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-
-        {/* Skills Table */}
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">Skills List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error ? (
-              <div className="text-red-400 text-center py-8">
-                <p>Error: {error}</p>
-                <Button
-                  onClick={fetchSkills}
-                  className="mt-4 bg-slate-800/50 text-white border-slate-600 hover:bg-slate-700/50 cursor-pointer"
-                >
-                  Try Again
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead
-                        className="text-slate-300 cursor-pointer hover:text-white"
-                        onClick={() => handleSort("skill_name")}
-                      >
-                        Skill Name
-                        {sortField === "skill_name" && (
-                          <span className="ml-1">
-                            {sortDirection === "asc" ? "↑" : "↓"}
-                          </span>
-                        )}
-                      </TableHead>
-                      <TableHead
-                        className="text-slate-300 cursor-pointer hover:text-white"
-                        onClick={() => handleSort("active_skill_level")}
-                      >
-                        Level
-                        {sortField === "active_skill_level" && (
-                          <span className="ml-1">
-                            {sortDirection === "asc" ? "↑" : "↓"}
-                          </span>
-                        )}
-                      </TableHead>
-                      <TableHead
-                        className="text-slate-300 cursor-pointer hover:text-white"
-                        onClick={() => handleSort("skillpoints_in_skill")}
-                      >
-                        Skill Points
-                        {sortField === "skillpoints_in_skill" && (
-                          <span className="ml-1">
-                            {sortDirection === "asc" ? "↑" : "↓"}
-                          </span>
-                        )}
-                      </TableHead>
-                      <TableHead className="text-slate-300">Progress</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedSkills.map((skill) => (
-                      <TableRow
-                        key={skill.skill_id}
-                        className="border-slate-700"
-                      >
-                        <TableCell className="text-white font-medium">
-                          {skill.skill_name}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={`${getSkillLevelColor(
-                              skill.active_skill_level
-                            )} text-white border-white/30`}
-                          >
-                            Level {skill.active_skill_level}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-slate-300">
-                          {formatSP(skill.skillpoints_in_skill)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-full bg-slate-700 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${getSkillLevelColor(
-                                skill.active_skill_level
-                              )}`}
-                              style={{
-                                width: `${
-                                  (skill.active_skill_level / 5) * 100
-                                }%`,
-                              }}
-                            ></div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+          <div className="flex items-center justify-between text-sm text-gray-400">
+            <span>
+              Completes on{" "}
+              {skillQueue.length > 0
+                ? new Date(
+                    skillQueue[skillQueue.length - 1]?.finish_date
+                  ).toLocaleDateString()
+                : "N/A"}
+            </span>
+            <span>
+              at{" "}
+              {skillQueue.length > 0
+                ? new Date(
+                    skillQueue[skillQueue.length - 1]?.finish_date
+                  ).toLocaleTimeString()
+                : "N/A"}
+            </span>
+            {skillQueue.length > 0 && (
+              <span className="text-blue-400 font-mono text-lg">
+                {formatTime(getTotalTrainingTime())}
+              </span>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Timeline Bar - EVE Style */}
+        {skillQueue.length > 0 && (
+          <div className="mb-6">
+            <div className="bg-gray-800 rounded h-2 relative overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded"></div>
+              <div className="absolute top-0 left-0 right-0 h-full flex justify-between items-center px-2 text-xs text-gray-400">
+                <span>0</span>
+                <span>12</span>
+                <span>24</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Skill Queue List - EVE Style */}
+        <div className="bg-gray-800 rounded-lg">
+          {error ? (
+            <div className="text-red-400 text-center py-8">
+              <p>Error: {error}</p>
+              <Button
+                onClick={fetchSkillQueue}
+                className="mt-4 bg-gray-700 hover:bg-gray-600 text-gray-200"
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : skillQueue.length === 0 ? (
+            <div className="text-gray-400 text-center py-12">
+              <Pause className="h-16 w-16 mx-auto mb-4 text-gray-500" />
+              <p className="text-xl mb-2">No skills in queue</p>
+              <p className="text-sm">
+                Add skills to your training queue to see them here
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-700">
+              {skillQueue.map((item) => (
+                <div
+                  key={`${item.skill_id}-${item.queue_position}`}
+                  className="p-4 hover:bg-gray-750 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Skill Icon - Small square like in EVE */}
+                    <div className="w-6 h-6 bg-gray-500 rounded-sm flex items-center justify-center">
+                      <BookOpen className="h-4 w-4 text-gray-300" />
+                    </div>
+
+                    {/* Skill Name and Level */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-gray-100 font-medium truncate">
+                          {item.skill_name} ({item.finished_level}x)
+                        </h3>
+                        <span className="text-gray-400 text-sm">
+                          Level {item.finished_level}
+                        </span>
+                      </div>
+
+                      {/* Time Remaining */}
+                      <div className="text-sm text-gray-400 font-mono mb-2">
+                        {formatTime(getTimeRemaining(item))}
+                      </div>
+
+                      {/* Level Progress Squares - EVE Style */}
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((level) => {
+                          const isCompleted = level < item.finished_level;
+                          const isCurrent = level === item.finished_level;
+                          const progress = isCurrent
+                            ? getLevelProgress(item)
+                            : 0;
+
+                          return (
+                            <div
+                              key={level}
+                              className={`w-3 h-3 rounded-sm relative overflow-hidden ${
+                                isCompleted ? "bg-blue-500" : "bg-gray-600"
+                              }`}
+                            >
+                              {isCurrent && progress > 0 && (
+                                <div
+                                  className="absolute inset-0 bg-blue-500"
+                                  style={{ width: `${progress * 100}%` }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Info Icon */}
+                    <button className="p-1 hover:bg-gray-600 rounded-full">
+                      <Info className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

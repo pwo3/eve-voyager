@@ -25,9 +25,7 @@ interface SidebarProps {
 const Sidebar = ({ onLogout }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const [characterExpanded, setCharacterExpanded] = useState(
-    pathname.startsWith("/character")
-  );
+  const [characterExpanded, setCharacterExpanded] = useState(true);
   const { user } = useAuth();
 
   const navigation = [
@@ -59,10 +57,8 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
   const isCharacterActive = () => pathname === "/character";
   const isCharacterSectionActive = () => pathname.startsWith("/character");
 
-  // Auto-expand character menu when on character sub-pages
-  useEffect(() => {
-    setCharacterExpanded(pathname.startsWith("/character"));
-  }, [pathname]);
+  // Keep character menu open by default, only close if user manually closes it
+  // No automatic closing when navigating to other pages
 
   return (
     <>

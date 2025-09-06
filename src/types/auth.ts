@@ -210,3 +210,20 @@ export interface EVESkillsResponse {
   unallocated_sp: number;
   error?: string;
 }
+
+export interface EVESkillQueueItem {
+  skill_id: number;
+  skill_name: string;
+  finish_date: string;
+  start_date: string;
+  finished_level: number;
+  queue_position: number;
+  training_start_sp: number;
+  level_end_sp: number;
+  level_start_sp: number;
+}
+
+export interface EVESkillQueueResponse {
+  queue: EVESkillQueueItem[];
+  error?: string;
+}
