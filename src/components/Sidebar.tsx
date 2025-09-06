@@ -1,10 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { User, MapPin, Network, Menu, X, LogOut } from "lucide-react";
+import {
+  User,
+  MapPin,
+  Network,
+  Menu,
+  X,
+  LogOut,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -15,13 +25,23 @@ interface SidebarProps {
 const Sidebar = ({ onLogout }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const [characterExpanded, setCharacterExpanded] = useState(
+    pathname.startsWith("/character")
+  );
   const { user } = useAuth();
 
   const navigation = [
     {
-      name: "Profile",
-      href: "/profile",
+      name: "Character",
+      href: "/character",
       icon: User,
+      subItems: [
+        {
+          name: "Skills",
+          href: "/character/skills",
+          icon: BookOpen,
+        },
+      ],
     },
     {
       name: "Visited Systems",
@@ -36,6 +56,13 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
   ];
 
   const isActive = (href: string) => pathname === href;
+  const isCharacterActive = () => pathname === "/character";
+  const isCharacterSectionActive = () => pathname.startsWith("/character");
+
+  // Auto-expand character menu when on character sub-pages
+  useEffect(() => {
+    setCharacterExpanded(pathname.startsWith("/character"));
+  }, [pathname]);
 
   return (
     <>
@@ -82,21 +109,82 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
           <nav className="flex-1 p-4 space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
+              const hasSubItems = item.subItems && item.subItems.length > 0;
+              const isItemActive = isActive(item.href);
+
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
-                    isActive(item.href)
-                      ? "bg-blue-600 text-white"
-                      : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                <div key={item.name}>
+                  {hasSubItems ? (
+                    <div>
+                      <div
+                        className={cn(
+                          "flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                          isItemActive
+                            ? "bg-blue-600 text-white"
+                            : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                        )}
+                      >
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 flex-1 cursor-pointer"
+                        >
+                          <Icon className="h-5 w-5" />
+                          {item.name}
+                        </Link>
+                        <button
+                          onClick={() =>
+                            setCharacterExpanded(!characterExpanded)
+                          }
+                          className="p-1 hover:bg-white/10 rounded cursor-pointer"
+                        >
+                          {characterExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                      {characterExpanded && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {item.subItems.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            return (
+                              <Link
+                                key={subItem.name}
+                                href={subItem.href}
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                                  isActive(subItem.href)
+                                    ? "bg-blue-600 text-white"
+                                    : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                                )}
+                              >
+                                <SubIcon className="h-4 w-4" />
+                                {subItem.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                        isActive(item.href)
+                          ? "bg-blue-600 text-white"
+                          : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.name}
+                    </Link>
                   )}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.name}
-                </Link>
+                </div>
               );
             })}
           </nav>

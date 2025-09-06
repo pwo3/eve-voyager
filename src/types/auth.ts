@@ -132,3 +132,81 @@ export interface VisitedSystemsResponse {
   last_updated: string;
   error?: string;
 }
+
+// Types for corporation and alliance data
+export interface EVECorporation {
+  corporation_id: number;
+  name: string;
+  description?: string;
+  ticker: string;
+  date_founded?: string;
+  creator_id?: number;
+  creator_corporation_id?: number;
+  member_count?: number;
+  ceo_id?: number;
+  alliance_id?: number;
+  faction_id?: number;
+  home_station_id?: number;
+  war_eligible?: boolean;
+  url?: string;
+  tax_rate?: number;
+  shares?: number;
+}
+
+export interface EVEAlliance {
+  alliance_id: number;
+  name: string;
+  ticker: string;
+  date_founded?: string;
+  creator_corporation_id?: number;
+  creator_id?: number;
+  executor_corporation_id?: number;
+  faction_id?: number;
+}
+
+// Types for character detailed information
+export interface EVECharacterDetails {
+  character_id: number;
+  character_name: string;
+  birthday: string;
+  bloodline_id: number;
+  corporation_id: number;
+  description?: string;
+  gender: string;
+  race_id: number;
+  security_status?: number;
+  title?: string;
+}
+
+// Types for ship information
+export interface EVEShip {
+  ship_item_id: number;
+  ship_name: string;
+  ship_type_id: number;
+  ship_type_name: string;
+}
+
+// Enhanced profile response
+export interface EVEProfileResponse {
+  character: EVECharacterDetails;
+  corporation: EVECorporation;
+  alliance?: EVEAlliance;
+  ship?: EVEShip;
+  online_status: boolean;
+}
+
+export interface EVESkill {
+  skill_id: number;
+  skill_name: string;
+  active_skill_level: number;
+  skillpoints_in_skill: number;
+  trained_skill_level: number;
+  skill_type_id: number;
+}
+
+export interface EVESkillsResponse {
+  skills: EVESkill[];
+  total_sp: number;
+  unallocated_sp: number;
+  error?: string;
+}

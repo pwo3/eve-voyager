@@ -23,14 +23,19 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { EVELocationResponse } from "@/types/auth";
+import { EVELocationResponse, EVEProfileResponse } from "@/types/auth";
 
-const ProfilePage = () => {
-  const { user, loading, logout } = useAuth();
+const CharacterPage = () => {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [location, setLocation] = useState<EVELocationResponse | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<EVEProfileResponse | null>(
+    null
+  );
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -44,6 +49,13 @@ const ProfilePage = () => {
       fetchLocation();
     }
   }, [user, location, locationLoading]);
+
+  // Fetch profile data automatically when user is loaded
+  useEffect(() => {
+    if (user && !profileData && !profileLoading) {
+      fetchProfileData();
+    }
+  }, [user, profileData, profileLoading]);
 
   const fetchLocation = async () => {
     if (!user) return;
@@ -67,6 +79,26 @@ const ProfilePage = () => {
       );
     } finally {
       setLocationLoading(false);
+    }
+  };
+
+  const fetchProfileData = async () => {
+    try {
+      setProfileLoading(true);
+      setProfileError(null);
+
+      const response = await fetch("/api/profile");
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile data");
+      }
+
+      const data: EVEProfileResponse = await response.json();
+      setProfileData(data);
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+      setProfileError(error instanceof Error ? error.message : "Unknown error");
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -117,80 +149,118 @@ const ProfilePage = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Status */}
               <div className="space-y-4">
                 <h3 className="text-white text-lg font-semibold mb-3">
-                  Basic Information
+                  Status
                 </h3>
-
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-blue-400" />
-                  <span className="text-slate-300">Character ID:</span>
-                  <Badge
-                    variant="outline"
-                    className="text-white border-white/30"
-                  >
-                    {user.character_id}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-yellow-400" />
-                  <span className="text-slate-300">Token type:</span>
-                  <Badge variant="secondary">{user.token_type}</Badge>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-green-400" />
-                  <span className="text-slate-300">Expires in:</span>
-                  <span className="text-white">
-                    {Math.floor(user.expires_in / 3600)}h{" "}
-                    {Math.floor((user.expires_in % 3600) / 60)}m
-                  </span>
-                </div>
+                {profileData && (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        profileData.online_status
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
+                    ></div>
+                    <span className="text-slate-300">Status:</span>
+                    <Badge
+                      variant="outline"
+                      className={`${
+                        profileData.online_status
+                          ? "bg-green-600"
+                          : "bg-red-600"
+                      } text-white border-white/30`}
+                    >
+                      {profileData.online_status ? "Online" : "Offline"}
+                    </Badge>
+                  </div>
+                )}
+                {profileData && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-400" />
+                    <span className="text-slate-300">Birthday:</span>
+                    <span className="text-white">
+                      {new Date(
+                        profileData.character.birthday
+                      ).toLocaleDateString("en-US")}
+                    </span>
+                  </div>
+                )}
+                {profileError && (
+                  <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">
+                    Error: {profileError}
+                  </div>
+                )}
+                {profileLoading && (
+                  <div className="flex items-center gap-2 text-slate-400 text-sm">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Loading profile data...
+                  </div>
+                )}
               </div>
 
+              {/* Corporation */}
               <div className="space-y-4">
                 <h3 className="text-white text-lg font-semibold mb-3">
-                  Organization
+                  Corporation
                 </h3>
 
-                {user.corporation_id && (
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-300">Corporation ID:</span>
-                    <Badge
-                      variant="outline"
-                      className="text-white border-white/30"
-                    >
-                      {user.corporation_id}
-                    </Badge>
+                {profileData && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
+                        <Building className="h-6 w-6 text-blue-400" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {profileData.corporation.name}
+                        </div>
+                        <div className="text-slate-400 text-sm">
+                          Ticker:{" "}
+                          <span className="text-blue-300 font-mono">
+                            [{profileData.corporation.ticker}]
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {profileData.corporation.member_count && (
+                      <div className="text-slate-300 text-sm">
+                        Members:{" "}
+                        {profileData.corporation.member_count.toLocaleString()}
+                      </div>
+                    )}
                   </div>
                 )}
+              </div>
 
-                {user.alliance_id && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-orange-400" />
-                    <span className="text-slate-300">Alliance ID:</span>
-                    <Badge
-                      variant="outline"
-                      className="text-white border-white/30"
-                    >
-                      {user.alliance_id}
-                    </Badge>
-                  </div>
-                )}
+              {/* Alliance */}
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Alliance
+                </h3>
 
-                {user.faction_id && (
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-red-400" />
-                    <span className="text-slate-300">Faction ID:</span>
-                    <Badge
-                      variant="outline"
-                      className="text-white border-white/30"
-                    >
-                      {user.faction_id}
-                    </Badge>
+                {profileData?.alliance ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
+                        <Users className="h-6 w-6 text-orange-400" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {profileData.alliance.name}
+                        </div>
+                        <div className="text-slate-400 text-sm">
+                          Ticker:{" "}
+                          <span className="text-orange-300 font-mono">
+                            [{profileData.alliance.ticker}]
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  <div className="text-slate-400 text-sm">No alliance</div>
                 )}
               </div>
 
@@ -247,7 +317,7 @@ const ProfilePage = () => {
                     {location.station && (
                       <div className="flex items-center gap-2">
                         <Building className="h-4 w-4 text-green-400 flex-shrink-0" />
-                        <span className="text-slate-300 w-32">Station:</span>
+                        <span className="text-slate-300 w-32">Docked at:</span>
                         <Badge className="bg-green-600">
                           {location.station.name}
                         </Badge>
@@ -257,7 +327,7 @@ const ProfilePage = () => {
                     {location.structure && (
                       <div className="flex items-center gap-2">
                         <Building className="h-4 w-4 text-purple-400 flex-shrink-0" />
-                        <span className="text-slate-300 w-32">Structure:</span>
+                        <span className="text-slate-300 w-32">Docked at:</span>
                         <Badge className="bg-purple-600">
                           {location.structure.name}
                         </Badge>
@@ -282,6 +352,34 @@ const ProfilePage = () => {
                   <div className="flex items-center gap-2 text-slate-400 text-sm">
                     <RefreshCw className="h-4 w-4 animate-spin" />
                     Loading location...
+                  </div>
+                )}
+              </div>
+
+              {/* Current Ship */}
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Current Ship
+                </h3>
+                {profileData?.ship ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
+                        <Shield className="h-6 w-6 text-yellow-400" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {profileData.ship.ship_name}
+                        </div>
+                        <div className="text-slate-400 text-sm">
+                          {profileData.ship.ship_type_name}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-slate-400 text-sm">
+                    No ship information available
                   </div>
                 )}
               </div>
@@ -320,4 +418,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default CharacterPage;

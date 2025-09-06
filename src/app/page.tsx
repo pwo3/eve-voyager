@@ -19,8 +19,8 @@ const Home = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      // User is logged in, redirect to profile
-      router.push("/profile");
+      // User is logged in, redirect to character
+      router.push("/character");
     }
   }, [user, loading, router]);
 
