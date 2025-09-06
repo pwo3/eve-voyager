@@ -301,7 +301,11 @@ export default function SkillsPage() {
                               <div
                                 key={level}
                                 className={`w-3 h-3 rounded-sm relative overflow-hidden ${
-                                  isCompleted ? "bg-blue-500" : "bg-gray-600"
+                                  isCompleted
+                                    ? "bg-gray-400" // Completed levels in neutral gray
+                                    : isCurrent
+                                    ? "bg-gray-800 border-2 border-blue-400" // Current level with blue border for contrast
+                                    : "bg-gray-600" // Future levels in lighter gray for better contrast
                                 }`}
                               >
                                 {isCurrent && progress > 0 && (
